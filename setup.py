@@ -342,7 +342,7 @@ setup(
 
             # First, mysql
             # pymysql on 3.9 on all platforms.
-            'PyMySQL >= 0.6.6; python_version == "3.9"',
+            'PyMySQL >= 0.6.6; python_version == "3.14"',
             # mysqlclient (binary) on all CPythons. It's the default.
             'mysqlclient >= 2.0.0',
             # mysql-connector-python; one of two pure-python versions

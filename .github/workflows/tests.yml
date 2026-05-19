@@ -211,10 +211,12 @@ jobs:
       - name: Run tests and report coverage
         uses: ./.github/actions/run-tests
         with:
-          useCoverage: ${{ !startsWith(matrix.python-version, 'pypy')  }}
+          # On 3.15b1 with coverage 7.14.0, the binary tracer isn't available
+          # and the pure-python tracer can't do greenlet concurrency
+          useCoverage: ${{ !startsWith(matrix.python-version, 'pypy') && matrix.python-version != '3.15-dev'  }}
       - name: Coveralls Parallel
         uses: coverallsapp/github-action@v2
-        if: ${{ !startsWith(matrix.python-version, 'pypy') }}
+        if: ${{ !startsWith(matrix.python-version, 'pypy') && matrix.python-version != '3.15-dev'  }}
         with:
           flag-name: run-${{ join(matrix.*, '-') }}
           parallel: true
