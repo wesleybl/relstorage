@@ -68,6 +68,7 @@ def main(argv=None):
         "to objects that have already been removed. The --days and --prepack "
         "arguments are ignored."
     )
+    # pylint:disable-next=deprecated-class
     parser.add_argument("config_file", type=argparse.FileType('r'))
     options = parser.parse_args(argv[1:])
 

@@ -133,6 +133,7 @@ def main(argv=None):
         default=logging.INFO,
         help="Set the logging level to TRACE instead of the default of INFO."
     )
+    # pylint:disable-next=deprecated-class
     parser.add_argument("config_file", type=argparse.FileType('r'))
 
     options = parser.parse_args(argv[1:])

@@ -146,7 +146,7 @@ class AbstractConnection(GeventConnectionMixin):
         self.commit = self._critical_commit
         self.rollback = self._critical_rollback
         self.query = self._critical_query
-        self.gevent_sleep = _noop
+        self.gevent_sleep = _noop # pylint:disable=attribute-defined-outside-init
 
     def is_in_critical_phase(self):
         return 'gevent_sleep' in self.__dict__
