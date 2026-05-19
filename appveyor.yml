@@ -39,7 +39,7 @@ environment:
     # all the current (non EOL) versions.
 
     - PYTHON: "C:\\Python314-x64"
-      PYTHON_VERSION: "3.14.0rc3"
+      PYTHON_VERSION: "3.14.0"
       PYTHON_ARCH: "64"
       PYTHON_EXE: python
 
@@ -60,11 +60,6 @@ environment:
 
     - PYTHON: "C:\\Python310-x64"
       PYTHON_VERSION: "3.10.0"
-      PYTHON_ARCH: "64"
-      PYTHON_EXE: python
-
-    - PYTHON: "C:\\Python39-x64"
-      PYTHON_VERSION: "3.9.x"
       PYTHON_ARCH: "64"
       PYTHON_EXE: python
 
