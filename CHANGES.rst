@@ -9,9 +9,11 @@
 - Drop support for Python 3.9. This will be the last major RelStorage
   release to support 3.10.
 - Stop testing on PyPy 3.11 and with psycopg2cffi.
-- Build, test, and provide free-threaded support. However, it is
+- Build and provide binary wheels with free-threaded support. However, it is
   likely that RelStorage dependencies will cause the GIL to be
-  automatically enabled.
+  automatically enabled, and these wheels are thus untested. Crashes
+  have been seen in combination with gevent on 3.14t.
+- Add support for Python 3.15.
 
 
 4.2.0 (2025-09-29)

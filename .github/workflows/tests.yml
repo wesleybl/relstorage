@@ -93,7 +93,13 @@ jobs:
           - "3.12"
           - "3.13"
           - "3.14"
-          - "3.14t"
+          - "3.15-dev"
+          # Too many modules we depend on aren't free-threaded to make
+          # it worthwhile to try to test this. We'd have to forcibly
+          # disable the GIL, which is almost certainly unsafe given
+          # the modules that aren't free-threaded (e.g., gevent, persistent),
+          # and the fact that our test suite heavily uses threads.
+          # - "3.14t"
         os:
           - ubuntu-latest
           - macos-latest
