@@ -2,10 +2,13 @@
  Changes
 =========
 
-4.2.1 (unreleased)
+4.3.0 (unreleased)
 ==================
 
-- Nothing changed yet.
+- Use newer ``manylinux`` images to build binary wheels.
+- Drop support for Python 3.9. This will be the last major RelStorage
+  release to support 3.10.
+- Stop testing on PyPy 3.11.
 
 
 4.2.0 (2025-09-29)

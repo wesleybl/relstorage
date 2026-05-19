@@ -168,15 +168,12 @@ setup(
     license="ZPL-2.1",
     platforms=["any"],
     description="A backend for ZODB that stores pickles in a relational database.",
-    # Bump to 3.10 or even 3.11 at next release. We'll have to make changes
-    # in this file and our CI configuration to make sure we still have the
-    # same test coverage, as we were using just 3.9  for some things.
-    python_requires=">=3.9",
+    # Bump to  3.11 at next release.
+    python_requires=">=3.10",
     classifiers=[
         "Intended Audience :: Developers",
         "Programming Language :: Python",
         "Programming Language :: Python :: 3 :: Only",
-        "Programming Language :: Python :: 3.9",
         "Programming Language :: Python :: 3.10",
         "Programming Language :: Python :: 3.11",
         "Programming Language :: Python :: 3.12",

@@ -16,6 +16,7 @@ export GEVENT_MANYLINUX=1
 # know. The env var works for pip 20.
 export PIP_NO_PYTHON_VERSION_WARNING=1
 export PIP_NO_WARN_SCRIPT_LOCATION=1
+export PIP_ROOT_USER_ACTION=ignore
 
 # Build configuration.
 export CFLAGS="-pipe -O3"
@@ -58,7 +59,7 @@ if [ -d /RelStorage ] && [ -d /opt/python ]; then
     rm -rf wheelhouse
     mkdir wheelhouse
     ls -l /opt/python
-    for variant in `ls -d /opt/python/cp{314,312,39,310,311,313}*`; do
+    for variant in `ls -d /opt/python/cp{314,312,310,311,313}*`; do
         echo "Building $variant"
         mkdir /tmp/build
         cd /tmp/build

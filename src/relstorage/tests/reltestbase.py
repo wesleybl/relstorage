@@ -136,7 +136,7 @@ class StorageClientThread(MTStorage.StorageClientThread):
 
     def runtest(self):
         try:
-            super().runtest()
+            super().runtest() # pylint:disable=no-member
         finally:
             self.storage.release()
             self.storage = None
