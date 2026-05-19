@@ -93,7 +93,10 @@ jobs:
           - "3.12"
           - "3.13"
           - "3.14"
-        os: [ubuntu-latest, macos-latest]
+          - "3.14t"
+        os:
+          - ubuntu-latest
+          - macos-latest
         # exclude:
 
     steps:

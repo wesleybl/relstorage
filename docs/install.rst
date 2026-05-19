@@ -2,8 +2,9 @@
  Installation
 ==============
 
-RelStorage 3.0 is supported on Python 3.8, through 3.12, as well as
-PyPy3 3.9 or later.
+RelStorage 4.3 is supported on Python 3.10 through 3.14. PyPy 3.11
+was tested and supported in the past and may continue to work as long
+as RelStorage supports Python 3.11.
 
 .. seealso:: :doc:`supported-databases`
 
@@ -25,6 +26,9 @@ need to use even older versions of ZODB/ZEO, install RelStorage 1.6.
 Likewise, if you need Python 2.6 support, install RelStorage 1.6 (note
 that 1.6 *does not* run on Python 3 or PyPy).
 
+RelStorage 4.2.0 was the last version to support Python 3.9.
+
+RelStorage 4.0.0 was the last version to support Python 3.8.
 
 Database Adapter
 ================

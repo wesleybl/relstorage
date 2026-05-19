@@ -8,7 +8,10 @@
 - Use newer ``manylinux`` images to build binary wheels.
 - Drop support for Python 3.9. This will be the last major RelStorage
   release to support 3.10.
-- Stop testing on PyPy 3.11.
+- Stop testing on PyPy 3.11 and with psycopg2cffi.
+- Build, test, and provide free-threaded support. However, it is
+  likely that RelStorage dependencies will cause the GIL to be
+  automatically enabled.
 
 
 4.2.0 (2025-09-29)

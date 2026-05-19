@@ -260,6 +260,7 @@ setup(
             'always_allow_keywords': False,
             'infer_types': True,
             'nonecheck': False,
+            'freethreading_compatible': True,
         },
     ),
     tests_require=tests_require,
@@ -353,8 +354,6 @@ setup(
             # pg8000
             # This requirement is repeated in the driver class.
             'pg8000 >= 1.29.0; python_version == "3.11"',
-            # CFFI, runs on all implementations.
-            'psycopg2cffi >= 2.7.4; python_version == "3.11" or platform_python_implementation == "PyPy"',
             # Psycopg2 on all CPython, it's the default
             'psycopg2 >= 2.8.3; platform_python_implementation == "CPython"',
         ],
