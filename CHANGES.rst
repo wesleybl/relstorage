@@ -2,7 +2,7 @@
  Changes
 =========
 
-4.3.0 (unreleased)
+4.3.0 (2026-05-20)
 ==================
 
 - Use newer ``manylinux`` images to build binary wheels.
