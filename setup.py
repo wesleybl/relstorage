@@ -168,15 +168,12 @@ setup(
     license="ZPL-2.1",
     platforms=["any"],
     description="A backend for ZODB that stores pickles in a relational database.",
-    # Bump to 3.10 or even 3.11 at next release. We'll have to make changes
-    # in this file and our CI configuration to make sure we still have the
-    # same test coverage, as we were using just 3.9  for some things.
-    python_requires=">=3.9",
+    # Bump to  3.11 at next release.
+    python_requires=">=3.10",
     classifiers=[
         "Intended Audience :: Developers",
         "Programming Language :: Python",
         "Programming Language :: Python :: 3 :: Only",
-        "Programming Language :: Python :: 3.9",
         "Programming Language :: Python :: 3.10",
         "Programming Language :: Python :: 3.11",
         "Programming Language :: Python :: 3.12",
@@ -263,6 +260,7 @@ setup(
             'always_allow_keywords': False,
             'infer_types': True,
             'nonecheck': False,
+            'freethreading_compatible': True,
         },
     ),
     tests_require=tests_require,
@@ -344,7 +342,7 @@ setup(
 
             # First, mysql
             # pymysql on 3.9 on all platforms.
-            'PyMySQL >= 0.6.6; python_version == "3.9"',
+            'PyMySQL >= 0.6.6; python_version == "3.14"',
             # mysqlclient (binary) on all CPythons. It's the default.
             'mysqlclient >= 2.0.0',
             # mysql-connector-python; one of two pure-python versions
@@ -356,8 +354,6 @@ setup(
             # pg8000
             # This requirement is repeated in the driver class.
             'pg8000 >= 1.29.0; python_version == "3.11"',
-            # CFFI, runs on all implementations.
-            'psycopg2cffi >= 2.7.4; python_version == "3.11" or platform_python_implementation == "PyPy"',
             # Psycopg2 on all CPython, it's the default
             'psycopg2 >= 2.8.3; platform_python_implementation == "CPython"',
         ],

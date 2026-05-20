@@ -88,22 +88,22 @@ jobs:
         # 3.12.1 breaks zope.testrunner.
         # See https://github.com/zopefoundation/zope.testrunner/issues/157
         python-version:
-          - '3.9'
           - '3.10'
           - '3.11'
           - "3.12"
           - "3.13"
-          - "pypy-3.11"
-          - "3.14.0-rc.3"
-        os: [ubuntu-latest, macos-latest]
-        exclude:
-          # Can't build persistent on 3.12 with -UNDEBUG because it
-          # accesses fields of objects that aren't there in assert statements;
-          # we build linux with assertions enabled, and unless there is a 3.12
-          # persistent wheel, we have to exclude that one.
-          # The same thing goes for PyPy.
-          - os: ubuntu-latest
-            python-version: "pypy-3.11"
+          - "3.14"
+          - "3.15-dev"
+          # Too many modules we depend on aren't free-threaded to make
+          # it worthwhile to try to test this. We'd have to forcibly
+          # disable the GIL, which is almost certainly unsafe given
+          # the modules that aren't free-threaded (e.g., gevent, persistent),
+          # and the fact that our test suite heavily uses threads.
+          # - "3.14t"
+        os:
+          - ubuntu-latest
+          - macos-latest
+        # exclude:
 
     steps:
       - name: checkout
@@ -173,13 +173,12 @@ jobs:
           ls -l dist
           twine check dist/*
       - name: Upload RelStorage wheel
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v7
         with:
           name: RelStorage-${{ runner.os }}-${{ matrix.python-version }}.whl
           path: dist/*whl
       - name: lint
-        if: matrix.python-version == '3.11' && startsWith(runner.os, 'Linux')
-        # At this writing, PyLint 2.17/astroid 2.15 won't work on 3.12
+        if: matrix.python-version == '3.14' && startsWith(runner.os, 'Linux')
         run: |
           pip install -U pylint
           python -m pylint --limit-inference-results=1 --rcfile=.pylintrc relstorage -f parseable -r n
@@ -212,14 +211,16 @@ jobs:
       - name: Run tests and report coverage
         uses: ./.github/actions/run-tests
         with:
-          useCoverage: ${{ !startsWith(matrix.python-version, 'pypy')  }}
+          # On 3.15b1 with coverage 7.14.0, the binary tracer isn't available
+          # and the pure-python tracer can't do greenlet concurrency
+          useCoverage: ${{ !startsWith(matrix.python-version, 'pypy') && matrix.python-version != '3.15-dev'  }}
       - name: Coveralls Parallel
         uses: coverallsapp/github-action@v2
-        if: ${{ !startsWith(matrix.python-version, 'pypy') }}
+        if: ${{ !startsWith(matrix.python-version, 'pypy') && matrix.python-version != '3.15-dev'  }}
         with:
           flag-name: run-${{ join(matrix.*, '-') }}
           parallel: true
-      - name: Publish package to PyPI (mac)
+      - name: Publish package to PyPI (Mac)
         # We cannot 'uses: pypa/gh-action-pypi-publish@v1.4.1' because
         # that's apparently a container action, and those don't run on
         # the Mac.
@@ -245,15 +246,14 @@ jobs:
     # We use a regular Python matrix entry to share as much code as possible.
     strategy:
       matrix:
-        python-version: [3.9]
+        python-version: [3.14]
         image:
           - manylinux_2_28_x86_64
-          - manylinux2014_aarch64
-          - manylinux2014_ppc64le
-          - manylinux2014_s390x
-          - manylinux2014_x86_64
-          - musllinux_1_1_x86_64
-          - musllinux_1_1_aarch64
+          - manylinux_2_28_aarch64
+          # - manylinux_2_28_ppc64le
+          # - manylinux_2_28_s390x
+          - musllinux_1_2_x86_64
+          - musllinux_1_2_aarch64
     name: ${{ matrix.image }}
     steps:
       - name: checkout
@@ -263,7 +263,7 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
       - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
+        uses: docker/setup-qemu-action@v4
         with:
           platforms: all
       - name: Build RelStorage
@@ -271,7 +271,7 @@ jobs:
           DOCKER_IMAGE: quay.io/pypa/${{ matrix.image }}
         run: bash ./scripts/releases/make-manylinux
       - name: Store RelStorage wheels
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v7
         with:
           path: wheelhouse/*whl
           name: ${{ matrix.image }}_wheels.zip
