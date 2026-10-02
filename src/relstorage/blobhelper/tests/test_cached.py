@@ -118,7 +118,10 @@ class CacheBlobHelperTest(test_blobhelper.BlobHelperTest):
         def loadBlob_wrapper(cursor, oid, serial, blob_lock):
             fn = orig_loadBlobInternal(cursor, oid, serial, blob_lock)
             if not loadBlob_calls:
-                os.remove(fn)
+                # Use remove_committed to handle read-only cache files
+                # on Windows (downloaded blobs are set_not_writable).
+                from ZODB.blob import remove_committed
+                remove_committed(fn)
                 loadBlob_calls.append(1)
             return fn
 
@@ -135,7 +138,10 @@ class CacheBlobHelperTest(test_blobhelper.BlobHelperTest):
         def loadBlob_wrapper(cursor, oid, serial, blob_lock):
             fn = orig_loadBlobInternal(cursor, oid, serial, blob_lock)
             if not loadBlob_calls:
-                os.remove(fn)
+                # Use remove_committed to handle read-only cache files
+                # on Windows (downloaded blobs are set_not_writable).
+                from ZODB.blob import remove_committed
+                remove_committed(fn)
                 loadBlob_calls.append(1)
             return fn
 
