@@ -67,10 +67,13 @@ class BlobHelperTest(TestCase):
                       download_action='write', keep_history=True):
         test = self
 
+        _keep_history = keep_history
+
         class DummyOptions(object):
             blob_dir = self.blob_dir
             shared_blob_dir = self.shared_blob_dir
             blob_cache_size = cache_size
+            keep_history = _keep_history
 
         class DummyMover(object):
             def download_blob(self, cursor, oid_int, tid_int, filename):

@@ -435,7 +435,9 @@ class CacheBlobHelper(AbstractBlobHelper):
         takes the total amount of data stored, and returns a modified
         value (less if we removed old revisions).
         """
-        if not total_size_stored or self.options.keep_history:
+        if self.options.keep_history:
+            return total_size_stored
+        if not self._txn_blobs:
             return total_size_stored
 
         # If we've added/edited some blobs in this transaction,
@@ -455,12 +457,22 @@ class CacheBlobHelper(AbstractBlobHelper):
             stored_oid_part, stored_tid_part, _ = stored_blob_file_path.split('.')
 
             dir_for_oid = get_dir_for_oid(stored_blob_oid)
-            all_blob_files = [fname
-                              for fname in os.listdir(dir_for_oid)
-                              if fname.endswith(blob_suffix)]
-            if len(all_blob_files) < 2:
-                # Nothing to do if there's only one file.
+            try:
+                names = os.listdir(dir_for_oid)
+            except FileNotFoundError:
+                # No cached revisions for this OID (lazy cache may never
+                # have downloaded it). Nothing to prune.
                 continue
+            all_blob_files = [fname
+                              for fname in names
+                              if fname.endswith(blob_suffix)]
+            if not all_blob_files:
+                continue
+            # Note: with a lazy cache the new revision may not be cached
+            # yet (finish() does not move blobs into place), so there may
+            # be only one file and it may be an old revision that must be
+            # pruned. Do not skip when len < 2; the tid comparison below
+            # handles both cases.
 
             for filename in all_blob_files:
                 # TODO: We could save some calls to listdir() if we collected
@@ -507,16 +519,22 @@ class CacheBlobHelper(AbstractBlobHelper):
             # Old revisions can still be pruned to save space even though
             # the new revision is not cached.
             total_size = 0
+            # Snapshot temp paths first: _remove_old_revisions and cleanup
+            # must run even if one of them fails.
+            temp_paths = list(self._txn_blobs.values()) if self._txn_blobs else ()
             # Prune old revisions for history-free storages; this scans
             # the cache and removes outdated .blob files for OIDs that
             # were stored in this transaction. It works even when the new
             # revision is not cached.
             if self._txn_blobs:
-                total_size = self._remove_old_revisions_of_stored_blobs(tid, total_size)
+                try:
+                    total_size = self._remove_old_revisions_of_stored_blobs(tid, total_size)
+                except Exception:  # pylint:disable=broad-except
+                    logger.exception("Failed to prune old blob cache revisions.")
             # Clean up the temporary files created by _doStoreBlob.
             # They were already uploaded to the database, so they are not
             # needed in the cache.
-            for temp_path in list(self._txn_blobs.values()) if self._txn_blobs else ():
+            for temp_path in temp_paths:
                 try:
                     if os.path.exists(temp_path):
                         ZODB.blob.remove_committed(temp_path)
