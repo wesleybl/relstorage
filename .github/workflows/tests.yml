@@ -84,6 +84,9 @@ jobs:
   test:
     runs-on: ${{ matrix.os }}
     strategy:
+      # CI experiment: do not let the expected 3.14 lint failure on
+      # unmodified master cancel the 3.15-dev job we want to observe.
+      fail-fast: false
       matrix:
         # 3.12.1 breaks zope.testrunner.
         # See https://github.com/zopefoundation/zope.testrunner/issues/157
