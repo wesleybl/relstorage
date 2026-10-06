@@ -208,6 +208,14 @@ jobs:
           # apparently. They *really* want you to use a docker service.
           # echo Configuring PostgreSQL
           # .travis/postgres.sh
+      - name: CI experiment - pure-Python perfmetrics on 3.15-dev (do not merge)
+        # Isolates whether the 3.15 segfault in test_restore_timeout comes
+        # from the perfmetrics C accelerator: with PERFMETRICS_PURE_PYTHON=1
+        # the metric decorators use the pure-Python implementation instead
+        # of perfmetrics._metric. Must be set before anything imports
+        # perfmetrics. No-op for all other matrix jobs.
+        if: matrix.python-version == '3.15-dev'
+        run: echo "PERFMETRICS_PURE_PYTHON=1" >> $GITHUB_ENV
       - name: Run tests and report coverage
         uses: ./.github/actions/run-tests
         with:
