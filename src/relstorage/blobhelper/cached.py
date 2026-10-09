@@ -37,6 +37,7 @@ from relstorage.interfaces import POSKeyError
 from .interfaces import ICachedBlobHelper
 from .abstract import AbstractBlobHelper
 from .util import lock_blob
+from .util import close_lock
 
 
 logger = __import__('logging').getLogger(__name__)
@@ -338,7 +339,11 @@ class CacheBlobHelper(AbstractBlobHelper):
                 if blob_lock is None:
                     # If we take out the lock, we close the lock.
                     # Otherwise, it's the caller's responsibility.
-                    my_lock.close()
+                    # Unlocking can intermittently fail on Windows under
+                    # contention (the lock region is process-wide); that
+                    # must not fail the read, and the fd still has to be
+                    # released, both guaranteed by close_lock().
+                    close_lock(my_lock, blob_filename)
         return blob_filename
 
     def _loadBlobLocked(self, cursor, oid, serial, blob_filename):
@@ -382,16 +387,52 @@ class CacheBlobHelper(AbstractBlobHelper):
         bytecount = self.adapter.mover.download_blob(
             cursor, bytes8_to_int64(oid), bytes8_to_int64(serial), tmp_fn)
         if os.path.exists(tmp_fn):
-            os.rename(tmp_fn, filename)
-            # Make the cached file read-only like files created via
-            # _move_blobs_into_place (which uses rename_or_copy_blob).
-            # This is required for test_blob_file_permissions and to
-            # prevent accidental modification of cached blobs.
-            try:
-                ZODB.blob.set_not_writable(filename)
-            except Exception:  # pylint:disable=broad-except  # pragma: no cover
-                pass
+            self._rename_downloaded_blob(tmp_fn, filename)
         self.cache_checker.loaded(bytecount)
+
+    def _rename_downloaded_blob(self, tmp_fn, filename, retries=10):
+        """
+        Move a freshly downloaded temp blob into place.
+
+        Returns when *filename* is usable: either we renamed our download,
+        or a racing downloader already placed the identical file (the name
+        embeds oid+tid, so its content is identical); our temp copy is then
+        dropped.
+
+        If the rename keeps failing and no usable file appears — e.g., the
+        previous file is draining through Windows' transient "delete
+        pending" state — wait briefly between attempts. Raises the last
+        error if the retries are exhausted; callers that can tolerate it
+        (like ``openCommittedBlobFile``) may still recover.
+        """
+        error = None
+        for _ in range(max(retries, 1)):
+            try:
+                os.rename(tmp_fn, filename)
+            except OSError as e:
+                error = e
+                if os.path.exists(filename):
+                    logger.debug(
+                        "Lost blob download race for %s; using existing file",
+                        filename,
+                    )
+                    try:
+                        os.remove(tmp_fn)
+                    except OSError:
+                        pass
+                    return
+                time.sleep(0.01)
+            else:
+                # Make the cached file read-only like files created via
+                # _move_blobs_into_place (which uses rename_or_copy_blob).
+                # This is required for test_blob_file_permissions and to
+                # prevent accidental modification of cached blobs.
+                try:
+                    ZODB.blob.set_not_writable(filename)
+                except Exception:  # pylint:disable=broad-except  # pragma: no cover
+                    pass
+                return
+        raise error
 
     def storeBlob(self, cursor, store_func,
                   oid, serial, data, blobfilename, version, txn):
@@ -724,7 +765,10 @@ class _BlobCacheSizeChecker(timer):
 
             return fsize
         finally:
-            lock.close()
+            # Like the download path, an intermittent unlock failure
+            # must not kill the cleaner thread; close_lock() still
+            # releases the file object.
+            close_lock(lock, file_path)
 
     def __shrink_blob_dir(self, current_size, files_by_atime):
         size = current_size
